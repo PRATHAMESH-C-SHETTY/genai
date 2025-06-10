@@ -1,0 +1,41 @@
+1.
+from gensim.downloader import load
+
+print("Loading GloVe (50D)...")
+model = load("glove-wiki-gigaword-50")
+
+def word_relationships():
+    res1 = model.most_similar(positive=['king', 'woman'], negative=['man'], topn=1)
+    print(f"\nking - man + woman ≈ {res1[0][0]} (similarity: {res1[0][1]:.4f})")
+
+    res2 = model.most_similar(positive=['paris', 'italy'], negative=['france'], topn=1)
+    print(f"\nparis - france + italy ≈ {res2[0][0]} (similarity: {res2[0][1]:.4f})")
+
+    print("\nWords similar to 'programming':")
+    for word, sim in model.most_similar('programming', topn=5):
+        print(f"{word} ({sim:.4f})")
+
+word_relationships()
+
+2.
+import matplotlib.pyplot as plt
+from sklearn.decomposition import PCA
+from gensim.downloader import load
+
+model = load("glove-wiki-gigaword-50")
+
+words = ['football', 'basketball', 'soccer', 'tennis', 'cricket']
+vectors = [model[w] for w in words]
+points = PCA(n_components=2).fit_transform(vectors)
+
+for i, word in enumerate(words):
+    x, y = points[i]
+    plt.scatter(x, y)
+    plt.text(x + 0.01, y + 0.01, word)
+plt.show()
+
+print("Words similar to 'programming':")
+for w, s in model.most_similar('programming', topn=5):
+    print(w, s)
+3.
+

@@ -89,3 +89,53 @@ feedbacks = [
 for fb in feedbacks:
     res = analyzer(fb)[0]
     print(f"\nFeedback: {fb}\nSentiment: {res['label']} (Confidence: {res['score']:.2f})")
+7.
+from transformers import pipeline
+
+summarize = pipeline("summarization", model="facebook/bart-large-cnn")
+text = """Natural language processing (NLP) is a field of artificial intelligence 
+that focuses on the interaction between computers and humans through natural language. 
+The ultimate goal of NLP is to enable computers to understand, interpret, and generate human language 
+in a way that is valuable. NLP techniques are used in many applications, such as speech recognition, 
+sentiment analysis, machine translation, and chatbot functionality. Machine learning algorithms play a significant role in NLP,
+as they help computers to learn from vast amounts of language data and improve their ability to process and generate text.
+However, NLP still faces many challenges, such as handling ambiguity, 
+understanding context, and processing complex linguistic structures. 
+Advances in NLP have been driven by deep learning models, such as transformers, 
+which have significantly improved the performance of many NLP tasks."""
+
+print("\nSummarized Text:\n", summarize(text, max_length=150, min_length=50, do_sample=False)[0]['summary_text'])
+
+9.
+import wikipediaapi
+
+def fetch(name):
+    p = wikipediaapi.Wikipedia('en', headers={"User-Agent": "InfoFetcher"}).page(name)
+    if not p.exists(): raise ValueError("Page not found")
+    c = p.text
+    f = lambda k: next((l.strip() for l in c.split('\n') if k in l.lower()), "N/A")
+    return {
+        "name": name,
+        "founder": f("founder"),
+        "founded": f("founded") or f("established"),
+        "branches": f("branch"),
+        "employees": f("employee"),
+        "summary": "\n".join(c.split('\n')[:4])
+    }
+
+print(fetch("PESITM"))
+10.
+import fitz
+
+def extract(f): return "".join(p.get_text() for p in fitz.open(f))
+def search(q, t): return [l for l in t.split("\n") if q.lower() in l.lower()] or ["No relevant section found."]
+
+def chatbot():
+    ipc = extract("IPC.pdf")
+    while True:
+        q = input("Ask about IPC (type 'exit' to quit): ")
+        if q.lower() == "exit": break
+        print("\n".join(search(q, ipc)), "\n" + "-"*50)
+
+chatbot()
+

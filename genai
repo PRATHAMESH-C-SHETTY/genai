@@ -38,4 +38,54 @@ print("Words similar to 'programming':")
 for w, s in model.most_similar('programming', topn=5):
     print(w, s)
 3.
+from gensim.models import Word2Vec
 
+corpus = [s.split() for s in [
+    "The patient was prescribed antibiotics to treat the infection.",
+    "The court ruled in favor of the defendant after reviewing the evidence.",
+    "Diagnosis of diabetes mellitus requires specific blood tests.",
+    "The legal contract must be signed in the presence of a witness.",
+    "Symptoms of the disease include fever, cough, and fatigue."
+]]
+
+model = Word2Vec(corpus, vector_size=50, window=5, min_count=1, workers=4, epochs=10)
+
+for word in ["patient", "court"]:
+    print(f"\nAnalysis for word '{word}'")
+    for w, s in model.wv.most_similar(word, topn=5):
+        print(w, s)
+4.
+from gensim.downloader import load
+from transformers import pipeline
+model, gen = load("glove-wiki-gigaword-50"), pipeline("text-generation", model="gpt2")
+
+enrich = lambda p: ' '.join([w for word in p.split() for w, _ in model.most_similar(word, topn=3)])
+op, ep = "lung cancer", enrich("lung cancer")
+
+for p, t in [(op, "Prompt"), (ep, "Enriched Prompt")]:
+    print(f"\n{t}:\n{p}")
+    print(gen(p, max_length=200, num_return_sequences=1, no_repeat_ngram_size=2)[0]["generated_text"])
+5.
+from gensim.downloader import load
+import random
+
+model = load("glove-wiki-gigaword-50")
+iw = "cricket"
+words = [w for w, _ in model.most_similar(iw, topn=50)]
+random.shuffle(words)
+print(f"The topic of {iw} is fascinating, often linked to terms like\n{', '.join(words)}.")
+6.
+from transformers import pipeline
+
+analyzer = pipeline("sentiment-analysis", model="distilbert/distilbert-base-uncased-finetuned-sst-2-english")
+feedbacks = [
+    "The product is amazing! I love it!",
+    "Terrible service, I am very disappointed.",
+    "This is a great experience, I will buy again.",
+    "Worst purchase I’ve ever made. Completely dissatisfied.",
+    "I'm happy with the quality, but the delivery was delayed."
+]
+
+for fb in feedbacks:
+    res = analyzer(fb)[0]
+    print(f"\nFeedback: {fb}\nSentiment: {res['label']} (Confidence: {res['score']:.2f})")
